@@ -1,0 +1,36 @@
+name: Publish on Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install build backend and tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade build
+          # install uv_build which provides the `uv` CLI used in publish.sh
+          pip install "uv_build>=0.8.13,<0.9.0"
+
+      - name: Ensure publish script is executable
+        run: |
+          ls -la
+          chmod +x ./publish.sh
+
+      - name: Run publish.sh
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          echo "Running publish.sh"
+          ./publish.sh
